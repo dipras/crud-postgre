@@ -1,0 +1,17 @@
+{
+  "name": "test-nodejs-postgres",
+  "version": "1.0.0",
+  "main": "index.js",
+  "scripts": {
+    "start": "nodemon index.js"
+  },
+  "license": "MIT",
+  "dependencies": {
+    "exceljs": "^4.1.1",
+    "express": "^4.17.1",
+    "nodemon": "^2.0.4",
+    "pg": "^8.3.3",
+    "sequelize": "^6.3.5"
+  },
+  "author": "Dipras"
+}
