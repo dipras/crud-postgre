@@ -106,10 +106,26 @@ module.exports = {
                 No: index + 1
             }
             worksheet.addRow(dataRow)
+            if ((index + 1) % 10 == 0) {
+                const data = result.slice((index - 9), (index + 1))
+                const value1 = data.map(m => m.value1).reduce((total, num) => total + num)
+                const value2 = data.map(m => m.value2).reduce((total, num) => total + num)
+                const avg = data.map(m => m.avg).reduce((total, num) => total + num)
+
+                const dataRow = {
+                    No: "",
+                    name: "TOTAL",
+                    code: "",
+                    value1,
+                    value2,
+                    avg
+                }
+
+                worksheet.addRow(dataRow)
+            }
         })
 
 
-        // save workbook to disk
         res.attachment("test.xlsx")
         workbook.xlsx.write(res)
             .then(function () {
