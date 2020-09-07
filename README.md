@@ -27,3 +27,6 @@ yard start
 | `/store`                                         | POST   | Store data                        |
 | `/update/:id`                                    | POST   | Update data                       |
 | `/delete/:id`                                    | GET    | Delete data                       |
+
+### Documentasi API
+- https://crudpostgres.docs.apiary.io/#

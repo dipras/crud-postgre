@@ -1,4 +1,8 @@
 const Excel = require('exceljs')
+const {
+    check,
+    validationResult
+} = require('express-validator')
 
 const AccountModel = require('./models/Account.model')
 const ValueModel = require('./models/Value.model')
@@ -205,6 +209,18 @@ module.exports = {
     },
 
     store: async (req, res) => {
+        await check('code').exists().run(req)
+        await check('name').exists().run(req)
+        await check('value1').isNumeric().run(req)
+        await check('value2').isNumeric().run(req)
+
+        const errors = validationResult(req)
+        if (!errors.isEmpty()) {
+            return res.status(422).json({
+                errors: errors.array()
+            });
+        }
+
         try {
             const createdAccount = await AccountModel.create({
                 code: req.body.code,
