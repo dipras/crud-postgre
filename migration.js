@@ -120,12 +120,6 @@ const data = [{
         name: "Anas",
         value1: 5000,
         value2: 7000
-    },
-    {
-        code: "gjklawe",
-        name: "Mahmud",
-        value1: 4000,
-        value2: 8000
     }
 ]
 

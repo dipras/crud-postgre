@@ -15,7 +15,7 @@ yarn install
 ```bash
 
 // nodemon watch change files
-yard dev
+yard start
 ```
 
 ## Table struktur endpoint api

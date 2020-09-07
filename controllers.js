@@ -49,17 +49,50 @@ const getData = async (showCode = false) => {
 module.exports = {
     getAll: async (req, res) => {
         const result = await getData(true)
+        const value1 = result.map(m => m.value1).reduce((total, num) => total + num)
+        const value2 = result.map(m => m.value2).reduce((total, num) => total + num)
 
         let data = []
+        const jumlahDiv = result.length >= 10 ? Math.floor(result.length / 10) : 0
+        const sisaDiv = result.length >= 10 ? result.length % 10 : result.length
 
-        result.forEach((v, key) => {
-            if (key % 10 == 0 || key == 0) {
-                data = [...data, {
-                    name: (key + 10) / 10,
-                    details: result.slice(key, (key + 10))
+        for (let index = 0; index <= (jumlahDiv - 1); index++) {
+            const localResult = result.slice(index * 10, index * 10 + 10)
+            const value1 = localResult.map(m => m.value1).reduce((total, num) => total + num)
+            const value2 = localResult.map(m => m.value2).reduce((total, num) => total + num)
+            data = [...data, {
+                name: jumlahDiv + 1,
+                details: [...localResult, {
+                    name: "TOTAL",
+                    value1,
+                    value2,
+                    avg: (value1 + value2) / 2
                 }]
-            }
-        })
+            }]
+
+        }
+        if (sisaDiv) {
+            const localResult = result.slice(jumlahDiv * 10)
+            const value1 = localResult.map(m => m.value1).reduce((total, num) => total + num)
+            const value2 = localResult.map(m => m.value2).reduce((total, num) => total + num)
+            data = [...data, {
+                name: jumlahDiv + 1,
+                details: [...localResult, {
+                    name: "TOTAL",
+                    value1,
+                    value2,
+                    avg: (value1 + value2) / 2
+                }]
+            }]
+        }
+
+        data = [...data, {
+            name: "GRAND TOTAL",
+            value1,
+            value2,
+            avg: (value1 + value2) / 2
+        }]
+
         res.send({
             code: 200,
             success: true,
@@ -70,6 +103,8 @@ module.exports = {
 
     excel: async (req, res) => {
         const result = await getData(true)
+        const value1 = result.map(m => m.value1).reduce((total, num) => total + num)
+        const value2 = result.map(m => m.value2).reduce((total, num) => total + num)
         var workbook = new Excel.Workbook();
         var worksheet = workbook.addWorksheet('');
 
@@ -100,17 +135,18 @@ module.exports = {
             }
         ];
 
+
         result.forEach((val, index) => {
             const dataRow = {
                 ...val,
                 No: index + 1
             }
             worksheet.addRow(dataRow)
-            if ((index + 1) % 10 == 0) {
-                const data = result.slice((index - 9), (index + 1))
+            if ((index + 1) % 10 == 0 || index == result.length - 1) {
+                const data = (index !== result.length - 1) ? result.slice((index - 9), (index + 1)) : result.slice(result.length - (result.length % 10))
                 const value1 = data.map(m => m.value1).reduce((total, num) => total + num)
                 const value2 = data.map(m => m.value2).reduce((total, num) => total + num)
-                const avg = data.map(m => m.avg).reduce((total, num) => total + num)
+                const avg = (value1 + value2) / 2
 
                 const dataRow = {
                     No: "",
@@ -123,6 +159,18 @@ module.exports = {
 
                 worksheet.addRow(dataRow)
             }
+        })
+        worksheet.addRow({
+            No: "",
+            name: "GRAND TOTAL",
+            code: "",
+            value1,
+            value2,
+            avg: (value1 + value2) / 2
+        })
+
+        worksheet.columns.forEach(column => {
+            column.width = column.header.length < 12 ? 12 : column.header.length
         })
 
 
@@ -158,16 +206,20 @@ module.exports = {
 
     store: async (req, res) => {
         try {
-            const createdData = AccountModel.create({
+            const createdAccount = await AccountModel.create({
                 code: req.body.code,
                 name: req.body.name
+            })
+            await ValueModel.create({
+                account_id: createdAccount.id,
+                value1: req.body.value1,
+                value2: req.body.value2
             })
 
             res.send({
                 status: 200,
                 success: true,
-                message: "Data Stored",
-                data: createdData
+                message: "Data Stored"
             })
         } catch (error) {
             return res.send({
@@ -180,17 +232,21 @@ module.exports = {
 
     update: async (req, res) => {
         try {
-            const updatedData = AccountModel.update(req.body, {
+            await AccountModel.update(req.body, {
                 where: {
                     id: req.params.id
+                }
+            })
+            await AccountModel.update(req.body, {
+                where: {
+                    account_id: req.params.id
                 }
             })
 
             res.send({
                 status: 200,
                 success: true,
-                message: "Data Updated",
-                data: updatedData
+                message: "Data Updated"
             })
         } catch (error) {
             return res.send({
